@@ -1,0 +1,981 @@
+################################################################################
+# CA SystemEDGE configuration file
+# Copyright 2011 CA, Inc.
+# http://www.ca.com
+################################################################################
+
+################################################################################
+# The sysedge_loglevel entry instructs the agent to log messages up to the given level.
+# The sysedge_logfile entry allows to specify log file settings.
+# The sysedge_logpattern entry instructs the agent to log messages for the specified
+# modules only.
+#
+# Syntax:
+#    sysedge_loglevel <level>
+#    sysedge_logfile '<file>' [<size> [<number>]]
+#    sysedge_logpattern <modules>
+#
+# Description:
+#    <level>   is fatal, critical, warning, info, debug, debug[1-3] (default is info).
+#    <file>    is the log file name (default is 'sysedge.log').
+#    <size>    is the maximum file size in KB (default is 10240, i.e. 10 megabytes).
+#    <number>  is the number of log files preserved (default is 1).
+#    <modules> is a space delimited list of module names (default is any module).
+#
+#    If <file> does not denote an absolute path name, the log file is created in
+#    the agent's port-specific data directory.
+#
+#    Upon agent startup, an existing log file is preserved as '<file>.0'. The
+#    same holds true for a change of the log file at runtime (via delivery of
+#    a new configuration in managed mode) with respect to the new file.
+#
+#    If <size> is equal to or less than zero then no size limit will be set on
+#    the log file. Otherwise, the <number> parameter controls the handling of
+#    the log file when the size limit is reached:
+#     0 = Logging will stop when the size limit is reached
+#     1 = Logging will save the current log file contents to '<file>.1' when the
+#         size limit is reached and then wrap around to the start of the log file
+#    >1 = Logging will use a wrap-around set (or ring) of up to the specified
+#         number of backup files with '<file>.<number>' containing the oldest
+#         log entries at any one time
+#    -1 = Logging will wrap around to the start of the log file when the size
+#         limit is reached
+#    -2 = Logging will save the current log file contents to
+#         '<file>.YYYY-MM-DD_hh.mm.ss' when the size limit is reached and then
+#         wrap around to the start of the log file
+#
+#    If specified, <modules> denotes the list of modules for which to log messages:
+#    se       = SystemEDGE agent
+#    svcrsp   = Service Response Monitor AIM
+#    rmonwbem = RMONWBEM AIM
+#    monwin   = Monitor Maintenance Window AIM
+#    perfcube = Performance Cube AIM
+#    util     = Common/shared library
+#    regexpr  = Common/shared library
+#    shm      = Common/shared library
+#
+# Example:
+#    sysedge_loglevel debug
+#    sysedge_logfile C:\temp\sysedgeDbg.log 1000 2
+#    sysedge_logpattern monwin perfcube
+################################################################################
+sysedge_loglevel debug
+template sysedge_logfile <file> <size> <number>
+template sysedge_logpattern <module-list>
+
+
+################################################################################
+# This entry specifies the preferred encryption method for the agent.
+# Encryption is used for example to encrypt/decrypt the sysedgeV3.cf configuration file.
+# The file can be encrypted using the tool se_enc and is decrypted by the agent.
+# Encryption is also used for SNMPv3 acess communities (see sysedgeV3.cf file).
+#
+# Encryption is available in three different implementations:
+#   * Internal solution to ensure a minimum security functionality
+#   * CA eTrust Public Key Infrastructure libraries (libetpki/libcapki)
+#     (requires installation of the CAPKI package)
+#   * RSA BSAFE Crypto-C Micro Edition libraries (cryptocme2) (FIPS 140-2 compliant)
+#     (requires installation of the CAPKI package and a FIPS supported platform)
+#
+# Syntax:
+#    sysedge_fips_mode <mode>
+#
+# Description:
+#   <mode> can be one of:
+#   0 = encryption tries using libetpki/libcapki and on failure falls back to internal solution
+#   1 = encryption tries using libcrytocme2 and on failure falls back to mode 0 (this is default)
+#   2 = encryption enforces use of libcrytocme2 and on failure no encrypt/decrypt can be performed
+#
+# Example:
+#    sysedge_fips_mode 2
+################################################################################
+template sysedge_fips_mode <mode>
+
+
+################################################################################
+# This entry specifies the preferred IP family the agent uses when sending SNMP
+# responses or SNMP traps to IPv4/IPv6 destination addresses. A prerequisite is
+# that the agent is bind to a source socket supporting the preferred family.
+# This can be controlled by the 'bind_address' configuration entry.
+#
+# Syntax:
+#    sysedge_ip_family <family>
+#
+# Description:
+#   <family> can be one of:
+#   1 = the agent prefers the IPv4 family (and tries IPv6 in error case only)
+#   2 = the agent prefers the IPv6 family (and tries IPv4 in error case only)
+#   3 = the agent uses both families IPv4 and IPv6 (this is default)
+#
+# Example:
+#    sysedge_ip_family 1
+################################################################################
+template sysedge_ip_family <family>
+
+
+################################################################################
+# The bind_address entry specifies a source socket address the agent binds to and
+# listens for incoming SNMP requests. (Note: The corresponding port is specified
+# during installation. See documentation of the 'default_port' parameter.)
+# Per default the agent will bind to all available UDP addresses (IPv4 and IPv6).
+#
+# The bind_trapport entry specifies the trap port the agent binds to for sending
+# SNMP traps. Per default the agent will bind to a port selected by the system.
+# If no bind_address is specified the agent will bind to all available UDP addresses.
+#
+# Syntax:
+#    bind_address <address>
+#    bind_trapport <port>
+#
+# Description:
+#    <address> is the IPv4/IPv6 address (or hostname) to listen for SNMP requests.
+#    <port>    is the port number to send SNMP traps from.
+#
+# Examples:
+#    bind_address 10.1.0.202
+#    bind_trapport 6688
+################################################################################
+template bind_address <address>
+template bind_trapport <port>
+
+
+################################################################################
+# These entries specify the information for the system group (see mib-2.asn1).
+#
+# Syntax:
+#    sysdescr <text>
+#    syscontact <text>
+#    syslocation <text>
+################################################################################
+template sysdescr <description>
+sysdescr <%= node[:sysedge][:sysdescr] %>
+template syscontact <contact>
+syscontact <%= node[:sysedge][:syscontact] %>
+template syslocation <location>
+syslocation <%= node[:sysedge][:syslocation] %>
+
+
+################################################################################
+# This entry specifies SNMPv1 access communities.
+# SNMPv2 and SNMPv3 can be configured in the sysedgeV3.cf configuration file.
+#
+# Syntax:
+#    community <name> <access> [<addresses>]
+#
+# Description:
+#    <name>      is the community granting the defined access to the defined addresses.
+#    <access>    is the type of access: 'read-write' or 'read-only'.
+#    <addresses> is a space delimited list of IPv4/IPv6 addresses or hostnames (default is any address).
+#
+# Examples:
+#    community private read-write
+#    community public read-write fe80::2b0:d0ff:fe9b:7d72
+################################################################################
+template community <name> <access> <addresses>
+community <%= node[:sysedge][:community] %> <%= node[:sysedge][:communityType] %>
+
+################################################################################
+# This entry specifies SNMPv1 trap communities (trap destinations).
+# SNMPv2 and SNMPv3 can be configured in the sysedgeV3.cf configuration file.
+#
+# Syntax:
+#    trap_community <name> <address> [<port> [<encoding> [<source>]]]
+#
+# Description:
+#    <name>     is the community send with the trap.
+#    <address>  is the IPv4/IPv6 address or the hostname to send traps to.
+#    <port>     is the UDP port to send traps to (default is 162).
+#    <encoding> defines how to include the trap source (default is 000).
+#    <source>   is the IPv4/IPv6 address or the hostname to use as trap source (default is trap_source).
+#
+#    Details for <encoding>:
+#       - encoding enables to include any source address in a SNMPv1/v2/v3 trap (or notification)
+#       - without encoding, only a SNMPv1 trap contains a source address (always as IPv4 address)
+#       - encoding must be given as three digits XYZ, with leading zeros (e.g. 001 or 034)
+#
+#         X is for SNMPv1 traps only.
+#         If the source address cannot be translated into an IPv4 address, it allows extending the
+#         IPv4 source address field (4 byte) of the SNMPv1 PDU to include an IPv6 address (16 byte).
+#         The trap is no more standard conform.
+#         1 = extend source address field (if necessary)
+#
+#         Y is for SNMPv1/v2/v3 traps (or notifications).
+#         It controls adding the source address as one or two additional trap varbinds
+#         using dedicated OIDs (1.3.6.1.4.1.791.99.99.1 and 1.3.6.1.4.1.791.99.99.2).
+#
+#         Z is for SNMPv1 traps only.
+#         It controls adding the source address in a proprietary trailer to the UDP packet.
+#         The trap is no more standard conform.
+#
+#         Valid values for Y and Z:
+#         1 = add source address as is (IPv4/IPv6 address or hostname)
+#         2 = add source address preferred as IPv4 (else IPv6, else hostname)
+#         3 = add source address preferred as IPv6 (else IPv4, else hostname)
+#         4 = add source address preferred as hostname (else IPv4, else IPv6)
+#         5 = as for 2, and additionally add hostname
+#         6 = as for 3, and additionally add hostname
+#         7 = as for 1, and additionally add hostname (if source address is IPv6)
+#
+# Examples:
+#    trap_community public 127.0.0.1 162
+#    trap_community public ::1 1692 100
+################################################################################
+template trap_community <name> <address> <port> <encoding> <source>
+trap_community <%= node[:sysedge][:trapCommunity] %> <%= node[:sysedge][:trapCommunityDest] %> 162
+
+################################################################################
+# This entry specifies the source address to be used when sending traps.
+# This configuration applies to SNMPv1/v2/v3 traps (or notifications).
+#
+# Syntax:
+#    trap_source <address>
+#
+# Description:
+#    <address> is the IPv4/IPv6 address or the hostname to use as trap source (default is `hostname`).
+#
+# Example:
+#    trap_source 129.118.126.83
+################################################################################
+#template trap_source <address>
+trap_source <%= node[:sysedge][:trapSource] %>
+
+################################################################################
+# The no_authen_traps entry configures the agent NOT to send authenticationFailure
+# traps (SNMP generic trap 4).
+#
+# Syntax:
+#    no_authen_traps
+################################################################################
+template no_authen_traps
+no_authen_traps
+
+
+################################################################################
+# This entry configures the agent NOT to send SNMPSET notifications to the manager.
+# Such notifications are sent upon receipt of SNMPSET requests if the agent is
+# running in managed mode (i.e. manager_name is configured).
+#
+# Syntax:
+#    no_snmp_set_notifications
+################################################################################
+template no_snmp_set_notifications
+
+
+################################################################################
+# This entry instructs the agent to go into a "maintenance" mode where it
+# stops the processing of all monitors and stops sending traps to managers.
+#
+# Syntax:
+#    sysedge_maintenance
+################################################################################
+template sysedge_maintenance
+
+
+################################################################################
+# The no_process_sets entry instructs the agent NOT to allow SNMPSET requests
+# on the processTable (see empire.asn1) and the hrSWRunTable (see hostmib.asn1).
+# The no_remoteshell_group entry instructs the agent NOT to allow SNMPSET requests
+# on the remoteShell group (see empire.asn1).
+# Attention: Allowing any of these SNMPSET requests seriously affects security.
+#
+# Syntax:
+#    no_process_sets
+#    no_remoteshell_group
+################################################################################
+template no_process_sets
+template no_remoteshell_group
+no_process_sets
+no_remoteshell_group
+
+
+################################################################################
+# This entry instructs the agent NOT to invoke actions.
+# Any monitor can configure an action, which will always be invoked concurrent
+# to the sending of any trap (including notReady traps).
+# Attention: Per default actions are running as system respectively root user.
+#
+# Syntax:
+#    no_actions
+################################################################################
+template no_actions
+no_actions
+
+
+################################################################################
+# These entries instruct the agent (Unix only) to run all child processes with
+# the defined user name and group name instead of the default root.
+# Child processes are created for actions, extensions and remoteShell commands.
+# If any name (user or group) is invalid, all child process execution is disabled.
+#
+# Syntax:
+#    subprogram_user_name <name>    (Unix only)
+#    subprogram_group_name <name>   (Unix only)
+#
+# Description:
+#    <name> is the user name or group name to use for child processes.
+#
+# Example:
+#    subprogram_user_name sysedge   (Unix only)
+#    subprogram_group_name adm      (Unix only)
+################################################################################
+template subprogram_user_name <name>
+template subprogram_group_name <name>
+
+
+################################################################################
+# This entry instructs the agent (Unix only) to run SNMP communication under 
+# another user. Agent will also use this user's default group as an effective group.
+# By default agent operates using root account. 
+#
+# Syntax:
+#    privilege_separation_user <name>  (Unix only)
+#
+# Description:
+#    <name> is the user name under which credentials agent run during SNMP  
+#           communication.
+#
+# Example:
+#    privilege_separation_user daemon  (Unix only)
+################################################################################
+template privilege_separation_user <name>
+privilege_separation_user root
+
+
+################################################################################
+# This entry instructs the agent NOT to skip Solaris Zone virtual mountpoints.
+# Note: This entry applies only to Solaris 10 or later.
+#
+# Syntax:
+#    no_zone_mountpoint_filtering
+################################################################################
+template no_zone_mountpoint_filtering
+
+
+################################################################################
+# These entries can be used to prevent the agent from populating the respective
+# MIB tables (see empire.asn1). Typically this is done due to security policies
+# or to reduce the agent's resource usage.
+#
+# Syntax:
+#    no_process_table           (disables also hrSWRunTable)
+#    no_topprocs_table
+#    no_who_table
+#    no_usergroup_table
+#    no_trapcommunity_table
+#    no_mirror_monitor_table
+#    no_mirror_aggregate_table
+################################################################################
+template no_process_table
+template no_topprocs_table
+template no_who_table
+template no_usergroup_table
+template no_trapcommunity_table
+template no_mirror_monitor_table
+template no_mirror_aggregate_table
+
+
+################################################################################
+# These entries can be used to prevent the agent from querying the status of the
+# different system devices. Typically this is to avoid potentially agent blocking.
+# Note that enabling any of these entries will affect the corresponding MIB
+# tables, because not all information will be provided for the respective objects.
+#
+# Syntax:
+#    no_stat_floppy          - not query floppy devices
+#    no_serial_status        - not query serial devices other than the keyboard and mouse
+#    no_probe_disks          - not query disks and CD/DVD devices
+#    no_stat_nfs_filesystems - not query NFS-mounted filesystems   (Unix only)
+#    no_hpux_probe_graphics  - not query graphics                  (HP-UX only)
+################################################################################
+template no_stat_floppy
+template no_serial_status
+template no_probe_disks
+template no_stat_nfs_filesystems
+template no_hpux_probe_graphics
+no_stat_floppy
+
+
+################################################################################
+# This entry specifies whether a warm-start of the agent will not force a
+# rediscovery of all hardware devices. A warm-start is performed if the agent is
+# running in managed mode (i.e. manager_name is configured) and a new configuration
+# file is received from the manager.
+#
+# Syntax:
+#    no_warmstart_discovery
+################################################################################
+template no_warmstart_discovery
+no_warmstart_discovery
+
+
+################################################################################
+# This entry specifies the preferred calculation method (Linux only) for free memory.
+#
+# Syntax:
+#    linux_freemem_include method [method]   (Linux only)
+#
+# Description:
+#    <method> can be one or both of:
+#    buffers = include system buffers in the free memory calculation
+#    cached  = include disk cached memory in the free memory calculation
+#
+# Example:
+#    linux_freemem_include buffers cached    (Linux only)
+################################################################################
+template linux_freemem_include <method-list>
+linux_freemem_include buffers cached
+
+
+################################################################################
+# Monitors can accept regular expressions containing UTF-8 characters. It can be
+# handled either by former regexp library or by PCRE regex library which is
+# considered as standard in many GNU applications. PCRE covers POSIX basic and
+# POSIX extended regular expressions and also subset of regular expression
+# functionality provided by Perl. More about PCRE can be found at:
+# http://www.pcre.org/pcre.txt
+#
+# SysEDGE agent uses older regex library as default. To enable new PCRE library
+# use configuration option use_pcre.
+# 
+# Syntax:
+#    use_pcre
+################################################################################
+template use_pcre
+use_pcre
+
+
+################################################################################
+# This entry specifies the soft limit in bytes for GET BULK response message payload.
+#
+# The main purpose of this soft limit is:
+#   * Limit fragmentation of response message 
+#   * Limit memory consumed for by sysedge   
+#
+# In case the message soft limit is breached agent still finish the iteration
+# of requested list of OIDs and form the valid response message.
+#
+# It is not guaranteed that response message does not breach the soft limit.
+# In general it is a good idea to left there some room for possible overflow.
+# 
+# For example to avoid fragmentation on IP level the soft limit could be set to 60000.
+# Maximum size of IP packet is 65535 therefore there is still room left for possible 
+# overflow and protocol headers.
+#
+# Default value is set to 60000
+#     
+# Syntax:
+#    bulk_read_response_soft_limit <limit>   
+#
+# Description:
+#    <limit> soft limit in bytes
+#
+# Example:
+#    bulk_read_response_soft_limit 60000    
+################################################################################
+template bulk_read_response_soft_limit
+bulk_read_response_soft_limit 60000
+
+
+################################################################################
+# Per default the agent aggregates all self monitors and process monitors with the
+# same object class, instance and attribute into 'standard' aggregates.
+# All monitors belonging to an aggregate are called 'connected monitors'.
+#
+# The aggregate_level entry enables several higher levels of monitor aggregations,
+# so called 'super' aggregates, using an asterisk '*' as placeholder.
+#
+# Note:
+# For the object instance '//' and '/' are used as delimiters to relate an instance
+# to its hosted hierarchy: '//hierarchy/instance'. The hierarchy can be multi-tier.
+# For local system instances '//./' is prepended.
+# Additionally a name space can be prepended to identify virtual objects (e.g. lpar:).
+# Examples:
+#    //VM-Host/VM-Guest/Disk1
+#    //Host/Disk1
+#    //./Disk1
+#
+# Super aggregates can be enabled for one or both of the rightmost two tiers.
+# The special super aggregate //* is created to aggregate all instances.
+# Examples for level 0002:
+#    //VM-Host/VM-Guest/*
+#    //Host/*
+#    //./*
+# Examples for level 0004:
+#    //VM-Host/*/Disk1
+#    //*/Disk1           (excluding //./Disk1)
+# Examples for level 0008:
+#    //VM-Host/*/*
+#    //*/*               (excluding //./Disk1)
+#    //*
+#
+# Syntax:
+#    aggregate_level <level>
+#
+# Description:
+#    <level> is a bit field allowing the aggregation levels of the below table:
+#
+#    ----------------------------------------------------------------------
+#    class    instance                    attribute    level
+#    ----------------------------------------------------------------------
+#    class    //hierarchy/instance        attribute    (standard aggregate)
+#    class    //hierarchy/*               attribute    0002
+#    class    //hierarchy-1/*/instance    attribute    0004
+#    class    //hierarchy-1/*/*           attribute    0008
+#    
+#    class    //hierarchy/instance        *            0010
+#    class    //hierarchy/*               *            0020
+#    class    //hierarchy-1/*/instance    *            0040
+#    class    //hierarchy-1/*/*           *            0080
+#    
+#    *        //hierarchy/instance        attribute    0100
+#    *        //hierarchy/*               attribute    0200
+#    *        //hierarchy-1/*/instance    attribute    0400
+#    *        //hierarchy-1/*/*           attribute    0800
+#    
+#    *        //hierarchy/instance        *            1000
+#    *        //hierarchy/*               *            2000
+#    *        //hierarchy-1/*/instance    *            4000
+#    *        //hierarchy-1/*/*           *            8000
+#
+# Example:
+#    aggregate_level 0x6000
+################################################################################
+template aggregate_level <level>
+
+
+################################################################################
+# The aggregate_monitor_traps entry causes the agent to send SNMPv1/v2/v3 traps
+# (or notifications) not only for the aggregate but also for all connected monitors.
+# (The term 'connected monitors' is explained above.)
+#
+# The aggregate_monitor_actions entry causes the agent to invoke an action not only
+# for the connected monitors with the worst state but also for all connected monitors.
+#
+# Syntax:
+#    aggregate_monitor_traps
+#    aggregate_monitor_actions
+################################################################################
+template aggregate_monitor_traps
+template aggregate_monitor_actions
+
+
+################################################################################
+# The following describes all the flags that can be used for the different
+# monitor entries or history control entries, which are defined further down.
+#
+# Flags valid for all entries (01 to 40 only for monitor entries):
+#    000 000 01 - don't execute any actions (but send and log traps)
+#    000 000 02 - don't send any traps (but log traps and execute actions)
+#    000 000 04 - don't reinitialize notReady monitor
+#    000 000 08 - don't log any traps (but send traps and execute actions)
+#    000 000 10 - keep sending notReady traps
+#    000 000 20 - don't pass default arguments to actions
+#    000 000 40 - don't send notReady traps (including log and action)
+#    000 000 80 - entry was created by an AIM plugin (this flag is read-only)
+#
+# Flags valid for all self monitors:
+#    000 001 00 - send monitorClear traps (including log and action)
+#    xxx 002 00 - send monitorThreshold traps after xxx consecutive breaches (including log and action)
+#    xxx 004 00 - send at most xxx consecutive monitorThreshold traps (including log and action)
+#    000 008 00 - aggregate state of all monitors with same severity as AND relation
+#
+# Flags valid for process monitors (and Windows Service monitors):
+#    000 001 00 - monitor parent process (parent must match regexpr too)
+#    000 002 00 - don't send processStart traps (including log and action)
+#    000 004 00 - send processClear traps (including log and action)
+#    000 008 00 - match process name and arguments
+#    xxx 010 00 - send processThreshold/Stop traps after xxx consecutive breaches (including log and action)
+#    xxx 020 00 - send at most xxx consecutive processThreshold/Stop traps (including log and action)
+#    xxx 040 00 - monitor for xxx processes to be alive (procAlive)
+#    000 080 00 - monitor Windows service to be running (procAlive) or process in Solaris Zone
+#    000 100 00 - effectively the same as 000 002 00 (for legacy support)
+#    000 200 00 - aggregate state of all monitors with same severity as AND relation
+#
+# Flags valid for process group monitors:
+#    000 001 00 - match process name and arguments
+#    000 080 00 - monitor processes in Solaris Zone
+#
+# Flags valid for Windows Event Log monitors:
+#    000 001 00 - pre-append event ID to description
+#    000 002 00 - apply logical 'not' operator
+#
+# Flags valid for log file monitors (incl. directory monitoring):
+#    000 001 00 - apply logical 'not' operator
+#    000 002 00 - determine only file size
+#    xxx 004 00 - send match traps if more than xxx matches per read
+#    000 008 00 - monitor a directory (instead a file)
+#    000 010 00 - monitor the directory recursively
+#    000 020 00 - do not follow symbolic links (only for directory monitoring)
+#    000 040 00 - report logMonitorLogFileSize variable in kilobytes (instead of bytes)
+#
+# Flags valid for history control entries:
+#    000 001 00 - collect performance cube data
+################################################################################
+
+
+################################################################################
+# This entry specifies a self monitor.
+#
+# Syntax:
+#    monitor oid <oid> <index> <flags> <interval> <stype>[/<scale>] <oper> <thresh> ['<descr>' ['<action>' [<supIndex>]]]
+#    monitor oid <oid> <index> <flags> <interval> <stype>[/<scale>] <oper> <thresh> ['<descr>' ['<action>' ['<objClass>' '<objInst>' '<objAttr>' <severity>]]]
+#
+#    monitor <table> '<inst>' <attr> <index> <flags> <interval> <stype>[/<scale>] <oper> <thresh> ['<descr>' ['<action>' [<supIndex>]]]
+#    monitor <table> '<inst>' <attr> <index> <flags> <interval> <stype>[/<scale>] <oper> <thresh> ['<descr>' ['<action>' ['<objClass>' '<objInst>' '<objAttr>' <severity>]]]
+#
+# Description:
+#    <oid>      is the OID of the object to monitor (either a full OID or <attrName>.<instOID>).
+#    <index>    is the table index to be used.
+#    <flags>    is described above.
+#    <interval> is the evaluation interval for the monitor in a multiple of 30 seconds.
+#    <stype>    is the sampling type (absolute, delta).
+#    <scale>    is the scale factor (default value is 1)
+#    <oper>     is the comparison operator (nop, >, >, >=, >=, =, !=).
+#    <thresh>   is the threshold.
+#    <descr>    is an arbitrary description.
+#    <action>   is the full path (including parameters) of a command to execute concurrent to sending a trap.
+#    <supIndex> is the index of the monitor that is superseded by this monitor.
+#
+#    <objClass> is the object class to use for the object state model.     ('' is replaced by default value; '*' is invalid)
+#    <objInst>  is the object instance to use for the object state model.  ('' is replaced by default value; '*' is invalid)
+#               Note: '//' and '/' are used as delimiters to relate an instance to its hosted hierarchy: '//hierarchy/instance'
+#                     The hierarchy can be multi-tier. For local system instances '//./' is always prepended.
+#                     Additionally a name space can be prepended to identify virtual objects (e.g. lpar:).
+#    <objAttr>  is the object attribute to use for the object state model. ('' is replaced by default value; '*' is invalid)
+#    <severity> is the severity to use for the object state model (none, ok, warning, minor, major, critical, fatal).
+#
+#    <table>    is the tableEntry name (or the group name) of the object to monitor (filesystem is an alias for devTableEntry).
+#    <inst>     is the instance name of the object to monitor ('' if no instance).
+#    <attr>     is the attribute name of the object to monitor.
+#
+# Examples:
+#    monitor oid numPageFaults.0 11 0x0 60 delta      > 1000   'Page fault rate above 1000' '' 'Paging' 'Total' 'Faults' minor
+#    monitor oid numPageFaults.0 12 0x0 60 delta      > 4000   'Page fault rate above 4000' '' 'Paging' 'Total' 'Faults' major
+#    monitor oid numPageFaults.0 13 0x0 60 delta/1000 > 7      'Page fault rate above 7000' '' 'Paging' 'Total' 'Faults' minor
+#
+#    monitor devTableEntry '/var' devCapacity 13 0x0 60 absolute > 90 'Filesystem /var filesystem Example' "${CASYSEDGE}/bin/email -r mymailservername sysedge@mydomain.com root@mydomain.com '/var > 90 on machineX' '/var > 90 machineX -- Generated By SystemEDGE'"
+#    monitor ifEntry       'eth0' ifOutOctets 14 0x0 60 delta    =  0 'Interface eth0 is inactive' ''
+################################################################################
+template monitor oid <oid> <index> <flags> <interval> <stype> <oper> <thresh> <descr> <action> <supIndex>
+template monitor oid <oid> <index> <flags> <interval> <stype> <oper> <thresh> <descr> <action> <objClass> <objInst> <objAttr> <severity>
+template monitor <table> <inst> <attr> <index> <flags> <interval> <stype> <oper> <thresh> <descr> <action> <supIndex>
+template monitor <table> <inst> <attr> <index> <flags> <interval> <stype> <oper> <thresh> <descr> <action> <objClass> <objInst> <objAttr> <severity>
+
+
+monitor oid memCapacity.0              11 0x300200 300 absolute >= 95 'Physical Memory Usage (percentage)' '' 'Memory'     'Total' 'PercentUsed' warning
+monitor oid memCapacity.0              12 0x300200 300 absolute >= 98 'Physical Memory Usage (percentage)' '' 'Memory'     'Total' 'PercentUsed' minor
+monitor oid cpuTotalIdlePercent.0      13 0x600200 120 absolute <= 10 'CPU Idle Time (percentage)'         '' 'CPU'        'Total' 'PercentIdle' warning
+monitor oid cpuTotalIdlePercent.0      14 0x600200 120 absolute <=  5 'CPU Idle Time (percentage)'         '' 'CPU'        'Total' 'PercentIdle' minor
+monitor oid diskStatsUtilization.1     15 0x300200 300 absolute >= 90 'Disk Busy Time (percentage)'        '' 'Disk'       'First' 'PercentBusy' warning
+monitor oid diskStatsUtilization.1     16 0x300200 300 absolute >= 95 'Disk Busy Time (percentage)'        '' 'Disk'       'First' 'PercentBusy' minor
+monitor devTableEntry '/'  devCapacity 19 0x0      300 absolute >= 95 'File System Usage (percentage)'     '' 'FileSystem' 'Root'  'PercentUsed' warning
+monitor devTableEntry '/'  devCapacity 20 0x0      300 absolute >= 98 'File System Usage (percentage)'     '' 'FileSystem' 'Root'  'PercentUsed' minor
+
+################################################################################
+# This entry specifies a process monitor.
+#
+# Syntax:
+#    watch process <attr> '<regexpr>' <index> <flags> <interval> <stype> <oper> <thresh> ['<descr>' ['<action>' ['<objClass>' '<objInst>' '<objAttr>' <severity>]]]
+#
+# Description:
+#    <attr>     is the attribute to monitor (see values of pmonAttribute in empire.asn1).
+#    <regexpr>  is the regular expression (dependent from flags) to use for matching processes by name,
+#               processes in Solaris Zones (use ZoneRegExpr/ProcRegExpr), or Windows services by name
+#    <index>    is the table index to be used.
+#    <flags>    is described above.
+#    <interval> is the evaluation interval for the monitor in a multiple of 30 seconds.
+#    <stype>    is the sampling type (absolute, delta).                 (ignored for procAlive; is set to absolute)
+#    <oper>     is the comparison operator (nop, >, >, >=, >=, =, !=).  (ignored for procAlive; dependent from flags is set to = or !=)
+#    <thresh>   is the threshold.                                       (ignored for procAlive; dependent from flags is set to 4 or 1)
+#    <descr>    is an arbitrary description.
+#    <action>   is the full path (including parameters) of a command to execute concurrent to sending a trap.
+#
+#    <objClass> is the object class to use for the object state model.     ('' is replaced by default value; '*' is invalid)
+#    <objInst>  is the object instance to use for the object state model.  ('' is replaced by default value; '*' is invalid)
+#               Note: Self monitors use '//' and '/' as delimiters to relate an instance to its hosted hierarchy: '//hierarchy/instance'
+#                     The hierarchy can be multi-tier. For local system instances '//./' is always prepended.
+#                     To ensure the same naming convention during aggregation, '//./' is prepended for process monitors too.
+#    <objAttr>  is the object attribute to use for the object state model. ('' is replaced by default value; '*' is invalid)
+#    <severity> is the severity to use for the object state model (none, ok, warning, minor, major, critical, fatal).
+#
+# Examples:
+#    watch process procRSS 'sqlservr' 11 0x0 60 absolute > 200000 'Memory SQL server above 200000 KB' '' 'Process' 'SqlSrv' 'Memory(KB)' warning
+#    watch process procRSS 'sqlservr' 12 0x0 60 absolute > 300000 'Memory SQL server above 300000 KB' '' 'Process' 'SqlSrv' 'Memory(KB)' critical
+#
+#    watch process procAlive 'ypbind' 13 0x0 60 absolute = 4 'NIS daemon running'   '/usr/bin/yp_recovery.sh' 'Process' 'NIS'   'Alive' critical
+#    watch process procAlive 'smbd'   14 0x0 60 absolute = 4 'Samba daemon running' ''                        'Process' 'Samba' 'Alive' warning
+################################################################################
+template watch process <attr> <regexpr> <index> <flags> <interval> <stype> <oper> <thresh> <descr> <action> <objClass> <objInst> <objAttr> <severity>
+
+
+################################################################################
+# This entry specifies a process group monitor.
+#
+# Syntax:
+#    watch procgroup '<regexpr>' <index> <flags> <interval> ['<descr>' ['<action>' [<severity>]]]
+#    watch procgroupex '<regexpr>' <user> <group> <index> <flags> <interval> ['<descr>' ['<action>' [<severity>]]]
+#
+# Description:
+#    <regexpr>  is the regular expression (dependent from flags) to use for matching processes by name, or
+#               processes in Solaris Zones (use ZoneRegExpr/ProcRegExpr)
+#    <index>    is the table index to be used.
+#    <flags>    is described above.
+#    <interval> is the evaluation interval for the monitor in a multiple of 30 seconds.
+#    <descr>    is an arbitrary description.
+#    <action>   is the full path (including parameters) of a command to execute concurrent to sending a trap.
+#    <severity> is the significance of the monitor on a group change (none, ok, warning, minor, major, critical, fatal).
+#
+#    <user>     is the user name to match in addition to any process name regular expression.    (only supported on Unix)
+#    <group>    is the group name to match in addition to any process name regular expression.   (only supported on Unix)
+#
+# Example:
+#    watch procgroup 'iexplore|IEXPLORE' 11 0x0 60 'IE process group' '' warning
+#
+# Example for corresponding self monitor:
+#    monitor processGroupMonEntry 'iexplore|IEXPLORE' pgmonRSS 15 0x0 60 absolute > 150000 'IE process group memory above 150000 KB' ''
+################################################################################
+template watch procgroup <regexpr> <index> <flags> <interval> <descr> <action> <severity>
+template watch procgroupex <regexpr> <user> <group> <index> <flags> <interval> <descr> <action> <severity>
+
+
+################################################################################
+# This entry specifies a Windows Service monitor (Windows only).
+# These monitors are created as a special process monitor, monitoring for procAlive.
+#
+# Syntax:
+#    watch ntservice '<regexpr>' <index> <flags> <interval> ['<descr>' ['<action>' ['<objClass>' '<objInst>' '<objAttr>' <severity>]]]   (Windows only)
+#
+# Description:
+#    <regexpr>  is the service display name regular expression to match the Windows Service of interest.
+#    <index>    is the table index to be used.
+#    <flags>    is described above.
+#    <interval> is the evaluation interval for the monitor in a multiple of 30 seconds.
+#    <descr>    is an arbitrary description.
+#    <action>   is the full path (including parameters) of a command to execute concurrent to sending a trap.
+#
+#    <objClass> is the object class to use for the object state model.     ('' is replaced by default value; '*' is invalid)
+#    <objInst>  is the object instance to use for the object state model.  ('' is replaced by default value; '*' is invalid)
+#               Note: Self monitors use '//' and '/' as delimiters to relate an instance to its hosted hierarchy: '//hierarchy/instance'
+#                     The hierarchy can be multi-tier. For local system instances '//./' is always prepended.
+#                     To ensure the same naming convention during aggregation, '//./' is prepended for process monitors too.
+#    <objAttr>  is the object attribute to use for the object state model. ('' is replaced by default value; '*' is invalid)
+#    <severity> is the severity to use for the object state model (none, ok, warning, minor, major, critical, fatal).
+#
+# Example:
+#    watch ntservice 'Exchange.*Store' 11 0x0 30 'Exchange Info Store service' '' 'NTService' 'Exchange(Store)' 'Running' critical
+################################################################################
+template watch ntservice <regexpr> <index> <flags> <interval> <descr> <action> <objClass> <objInst> <objAttr> <severity>
+
+
+################################################################################
+# This entry specifies a Windows Event Log monitor (Windows only).
+# Note: The interval for these entries is fix 60 seconds.
+#
+# Syntax:
+#    watch ntevent <index> <flags> <evLog> <evType> '<evSrc>' '<evDescr>' ['<descr>' ['<action>' [<severity>]]]   (Windows only)
+#
+# Description:
+#    <index>    is the table index to be used.
+#    <flags>    is described above.
+#    <evLog>    is the event log to read (application, security, system, dnsserver, dirservice, filerepservice).
+#    <evType>   is the event type to match (error, warning, information, success, failure, all).
+#    <evSrc>    is the regular expression to match the event source.
+#    <evDescr>  is the regular expression to match the event description.
+#    <descr>    is an arbitrary description.
+#    <action>   is the full path (including parameters) of a command to execute concurrent to sending a trap.
+#    <severity> is the significance of the monitor on a match (none, ok, warning, minor, major, critical, fatal).
+#
+# Example:
+#    watch ntevent 11 0x0 system all 'W3SVC' '.*Logon.*failure.*' 'Web Logon failure events' '' major
+################################################################################
+template watch ntevent <index> <flags> <evLog> <evType> <evSrc> <evDescr> <descr> <action> <severity>
+
+
+################################################################################
+# This entry specifies a log file monitor (incl. directory monitoring).
+#
+# Syntax:
+#    watch logfile <index> <flags> '<file>' '<regexpr>' ['<descr>' ['<action>' [<interval> [<severity>]]]]
+#
+# Description:
+#    <index>    is the table index to be used.
+#    <flags>    is described above.
+#    <file>     is the absolute path of the file or the directory to monitor.
+#    <regexpr>  is the regular expression to match the log file's content (ignored for directory).
+#    <descr>    is an arbitrary description.
+#    <action>   is the full path (including parameters) of a command to execute concurrent to sending a trap.
+#    <interval> is the evaluation interval for the monitor in minutes between 1 and 1440.
+#    <severity> is the significance of the monitor on a match (none, ok, warning, minor, major, critical, fatal).
+#
+# Examples:
+#    watch logfile 11 0x0    /var/log/messages 'FAILED LOGIN.*' 'Failed logins'      ''  5 warning
+#    watch logfile 12 0x5800 /var/log          ''               'Directory /var/log' '' 10 warning
+#
+# Examples for corresponding self monitor:
+#    monitor logMonitorEntry /var/log/messages logMonitorMatches     11 0x0 300 delta    >   10 'Failed logins rate above 10'  ''
+#    monitor logMonitorEntry /var/log          logMonitorLogFileSize 12 0x0 600 absolute > 3000 'Directory /var/log size above 3000 KB' ''
+################################################################################
+template watch logfile <index> <flags> <file> <regexpr> <descr> <action> <interval> <severity>
+
+
+################################################################################
+# This entry specifies a history control entry to track object values over time.
+#
+# Syntax:
+#    emphistory <index> <interval> <oid> <number> ['<descr>' [flags]]
+#
+# Description:
+#    <index>    is the table index to be used.
+#    <interval> is the collection interval in a multiple of 30 seconds.
+#    <oid>      is the OID of the object to collect (either a full OID or <attrName>.<instOID>).
+#    <number>   is the number of samples to collect.
+#    <descr>    is an arbitrary description.
+#    <flags>    is described above.
+#
+# Example:
+#    emphistory 11 60 loadAverage1Min.0 60 '1-min load average history' 0x100
+################################################################################
+template emphistory <index> <interval> <oid> <number> <descr> <flags>
+
+
+################################################################################
+# The cube_interval entry defines the frequency of writing history samples
+# collected for history control entries into a performance cube.
+# All history samples are averaged over this time period.
+#
+# The cube_indexrange entry specifies a reserved range of indices, where to create history
+# control entries for the collection of performance cube data, if no index is specified
+# during creation. This feature can be used by AIMs (e.g. SRM makes use of it).
+#
+# Syntax:
+#    emphistory cube_interval <interval>
+#    emphistory cube_indexrange <start> <end>
+#
+# Description:
+#    <interval> is the cube collection interval in minutes (default 20).
+#               Valid values are: 1,2,3,4,5, 10,15,20,30,60, 120,180,240,360,480,720
+#    <start>    is the first index in the reserved range (default 1000000).
+#    <end>      is the last index in the reserved range (default 1999999).
+#
+# Example:
+#    emphistory cube_interval 60
+#    emphistory cube_indexrange 1500000 1600000
+################################################################################
+template emphistory cube_interval <interval>
+template emphistory cube_indexrange <start> <end>
+
+
+################################################################################
+# This entry specifies a monitoring (maintenance) time window for a monitor.
+#
+# Syntax:
+#   monwin <monitor> <index> <timeOff> <timeOn> <status>
+#
+# Description:
+#    <monitor> specifies the monitor table (selfmon, processmon, procgroupmon, nteventmon, logfilemon, emphistory).
+#    <index>   is the monitor's index.
+#    <timeOff> is the time (24 hr format hhmm) at which the monitor is switched off (notInService), i.e. the maintenance window begins.
+#    <timeOn>  is the time (24 hr format hhmm) at which the monitor is switched on (active), i.e. the maintenance window ends.
+#    <status>  specifies if this entry is active (1) or notInService (2).
+#
+# Example:
+#    monwin processmon 11 2200 2330 1
+################################################################################
+template monwin <monitor> <index> <timeOff> <timeOn> <status>
+
+
+################################################################################
+# This entry extends the ntRegPerf group of the EMPIRE-MIB by adding new attributes
+# obtained from the Windows Registry (HKEY_LOCAL_MACHINE or HKEY_PERFORMANCE_DATA).
+#
+# Syntax:
+#    ntregperf <index> <type> registry '<key>' '<entry>'
+#    ntregperf <index> <type> performance '<object>' '<counter>' '<inst>'
+#
+# Description:
+#    <index>   is the attribute leaf number. To query this attribute use 'ntRegPerf.<index>.0'.
+#    <type>    is the attribute's type (integer, counter, gauge, octetstring, timeticks, objectid, ipaddress).
+#    <key>     is the registry key below HKEY_LOCAL_MACHINE.
+#    <entry>   is the registry entry (leaf) below HKEY_LOCAL_MACHINE\<key>.
+#    <object>  is the performance registry object.
+#    <counter> is the performance registry counter.
+#    <inst>    is the performance registry instance.
+#
+# Examples:
+#    ntregperf 1 gauge performance 'LogicalDisk' 'Free Megabytes' 'C:'
+#    ntregperf 2 octetstring registry 'SYSTEM\CurrentControlSet\Control\CrashControl' 'DumpFile'
+################################################################################
+template ntregperf <index> <type> registry <key> <entry>
+template ntregperf <index> <type> performance <object> <counter> <inst>
+
+
+################################################################################
+# This entry extends the extensionGroup of the EMPIRE-MIB by adding new attributes
+# obtained from the configured script or binary.
+#
+# Syntax:
+#    extension <index> <type> <access> '<command>'
+#
+# Description:
+#    <index>   is the attribute leaf number. To query this attribute use 'extensionGroup.<index>.0'.
+#    <type>    is the attribute's type (integer, counter, gauge, octetstring, timeticks, objectid, ipaddress).
+#    <access>  is the attribute's access (readonly, readwrite).
+#    <command> is the full path or just the name (including parameters) of the script or binary to execute.
+#
+# Examples:
+#    extension 1 octetstring readonly '%CASYSEDGE%\bin\getver.exe -f %CASYSEDGE%\bin\sysedge.dll'
+#    extension 2 integer     readonly '${CASYSEDGE}/bin/checkfile /core'
+#    extension 3 integer     readonly 'myextension'
+################################################################################
+template extension <index> <type> <access> <command>
+
+
+################################################################################
+# This entry specifies an optional AIM plugin to load.
+#
+# Syntax:
+#    sysedge_plugin <name>
+#
+# Description:
+#    <name> is the absolute path of the AIM library or just the AIM name.
+#           An asterisk * instructs the agent to load each installed AIM.
+#
+# Examples:
+#    sysedge_plugin svcrsp
+#    sysedge_plugin C:\sysedge\plugins\svcrsp\svcrsp.dll
+################################################################################
+template sysedge_plugin <name>
+sysedge_plugin *
+
+
+################################################################################
+# These entries specify important meta information for the agent.
+# Most of the information is set during installation and it is not recommended
+# to change these entries manually afterwards. Changes made in the runtime
+# configuration might have no effect.
+#
+# Syntax:
+#    data_directory <path>
+#    default_port <port>
+#    manager_name <name>
+#    manager_policy_name <policy>
+#    manager_policy_version <version>
+#
+# Description:
+#    <path>    is the absolute path of the directory the agent uses for all runtime files.
+#    <port>    is the number of the SNMP port the agent connects to per default (typically 161).
+#    <name>    is the name of the manager machine, managing this agent (* accepts the first manager).
+#    <policy>  is the name of the policy, telling the manager the preferred configuration name.
+#    <version> is the version of the policy, telling the manager the preferred configuration version.
+################################################################################
+template data_directory <path>
+data_directory <%= node[:sysedge][:dataDirectory] %>
+template default_port <port>
+default_port <%= node[:sysedge][:port] %>
+template manager_name <name>
+template manager_policy_name <policy>
+template manager_policy_version <version>
+
+<% @monitors.each do |monitor| -%>
+<%= monitor %>
+<% end -%>

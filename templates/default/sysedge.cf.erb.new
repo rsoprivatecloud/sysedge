@@ -1,0 +1,98 @@
+version 5.6
+sysedge_loglevel debug
+template sysedge_logfile <file> <size> <number>
+template sysedge_logpattern <module-list>
+template sysedge_fips_mode <mode>
+template sysedge_ip_family <family>
+template bind_address <address>
+template bind_trapport <port>
+template sysdescr <description>
+sysdescr <%= node[:sysedge][:sysdescr] %>
+template syscontact <contact>
+syscontact <%= node[:sysedge][:syscontact] %>
+template syslocation <location>
+syslocation <%= node[:sysedge][:syslocation] %>
+template community <name> <access> <addresses>
+community <%= node[:sysedge][:community] %> <%= node[:sysedge][:communityType] %>
+template trap_community <name> <address> <port> <encoding> <source>
+trap_community <%= node[:sysedge][:trapCommunity] %> <%= node[:sysedge][:trapCommunityDest] %> 162
+trap_source <%= node[:sysedge][:trapSource] %>
+template no_authen_traps
+no_authen_traps
+template no_snmp_set_notifications
+template sysedge_maintenance
+template no_process_sets
+template no_remoteshell_group
+no_process_sets
+no_remoteshell_group
+template no_actions
+no_actions
+template subprogram_user_name <name>
+template subprogram_group_name <name>
+template privilege_separation_user <name>
+privilege_separation_user root
+template no_zone_mountpoint_filtering
+template no_process_table
+template no_topprocs_table
+template no_who_table
+template no_usergroup_table
+template no_trapcommunity_table
+template no_mirror_monitor_table
+template no_mirror_aggregate_table
+template no_stat_floppy
+template no_serial_status
+template no_probe_disks
+template no_stat_nfs_filesystems
+template no_hpux_probe_graphics
+no_stat_floppy
+template no_warmstart_discovery
+no_warmstart_discovery
+template linux_freemem_include <method-list>
+linux_freemem_include buffers cached
+template use_pcre
+use_pcre
+template bulk_read_response_soft_limit
+bulk_read_response_soft_limit 60000
+template aggregate_level <level>
+template aggregate_monitor_traps
+template aggregate_monitor_actions
+template monitor oid <oid> <index> <flags> <interval> <stype> <oper> <thresh> <descr> <action> <supIndex>
+template monitor oid <oid> <index> <flags> <interval> <stype> <oper> <thresh> <descr> <action> <objClass> <objInst> <objAttr> <severity>
+template monitor <table> <inst> <attr> <index> <flags> <interval> <stype> <oper> <thresh> <descr> <action> <supIndex>
+template monitor <table> <inst> <attr> <index> <flags> <interval> <stype> <oper> <thresh> <descr> <action> <objClass> <objInst> <objAttr> <severity>
+
+monitor oid memCapacity.0              11 0x300200 300 absolute >= 95 'Physical Memory Usage (percentage)' '' 'Memory'     'Total' 'PercentUsed' warning
+monitor oid memCapacity.0              12 0x300200 300 absolute >= 98 'Physical Memory Usage (percentage)' '' 'Memory'     'Total' 'PercentUsed' minor
+monitor oid cpuTotalIdlePercent.0      13 0x600200 120 absolute <= 10 'CPU Idle Time (percentage)'         '' 'CPU'        'Total' 'PercentIdle' warning
+monitor oid cpuTotalIdlePercent.0      14 0x600200 120 absolute <=  5 'CPU Idle Time (percentage)'         '' 'CPU'        'Total' 'PercentIdle' minor
+monitor oid diskStatsUtilization.1     15 0x300200 300 absolute >= 90 'Disk Busy Time (percentage)'        '' 'Disk'       'First' 'PercentBusy' warning
+monitor oid diskStatsUtilization.1     16 0x300200 300 absolute >= 95 'Disk Busy Time (percentage)'        '' 'Disk'       'First' 'PercentBusy' minor
+monitor devTableEntry '/'  devCapacity 19 0x0      300 absolute >= 95 'File System Usage (percentage)'     '' 'FileSystem' 'Root'  'PercentUsed' warning
+monitor devTableEntry '/'  devCapacity 20 0x0      300 absolute >= 98 'File System Usage (percentage)'     '' 'FileSystem' 'Root'  'PercentUsed' minor
+template watch process <attr> <regexpr> <index> <flags> <interval> <stype> <oper> <thresh> <descr> <action> <objClass> <objInst> <objAttr> <severity>
+template watch procgroup <regexpr> <index> <flags> <interval> <descr> <action> <severity>
+template watch procgroupex <regexpr> <user> <group> <index> <flags> <interval> <descr> <action> <severity>
+template watch ntservice <regexpr> <index> <flags> <interval> <descr> <action> <objClass> <objInst> <objAttr> <severity>
+template watch ntevent <index> <flags> <evLog> <evType> <evSrc> <evDescr> <descr> <action> <severity>
+template watch logfile <index> <flags> <file> <regexpr> <descr> <action> <interval> <severity>
+watch logfile 510120 0x1    /var/log/tempest.log '.*ERROR:.*' 'ERROR found in /var/log/tempest.log'      ''  1 major
+template emphistory <index> <interval> <oid> <number> <descr> <flags>
+template emphistory cube_interval <interval>
+template emphistory cube_indexrange <start> <end>
+template monwin <monitor> <index> <timeOff> <timeOn> <status>
+template ntregperf <index> <type> registry <key> <entry>
+template ntregperf <index> <type> performance <object> <counter> <inst>
+template extension <index> <type> <access> <command>
+template sysedge_plugin <name>
+sysedge_plugin *
+template data_directory <path>
+data_directory <%= node[:sysedge][:dataDirectory] %>
+template default_port <port>
+default_port <%= node[:sysedge][:port] %>
+template manager_name <name>
+template manager_policy_name <policy>
+template manager_policy_version <version>
+
+<% @monitors.each do |monitor| -%>
+<%= monitor %>
+<% end -%>
