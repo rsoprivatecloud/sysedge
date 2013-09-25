@@ -57,58 +57,82 @@ else
   puts 'Creating Sysedge.cf'
   sysedge = Array.[]
   rec = node[:recipes]
+  puts 'Installing monitors'
   rec.each { |r| case r
     when "horizon::server"
+      puts "horizon::server"
       sysedge << node['sysedge']['monitors']['apache2']
     when "mysql-openstack::server"
+      puts "mysql-openstack::server"
       sysedge << node['sysedge']['monitors']['mysqld']
     when "nova-network::quantum-dhcp-agent"
+      puts "nova-network::quantum-dhcp-agent"
       sysedge << node['sysedge']['monitors']['quantum']['dhcp']
     when "nova-network::quantum-metadata-agent"
+      puts "nova-network::quantum-metadata-agent"
       sysedge << node['sysedge']['monitors']['quantum']['metadata-agent']
       sysedge << node['sysedge']['monitors']['quantum']['metadata-proxy']
     when "nova-network::quantum-plugin"
+      puts "nova-network::quantum-plugin"
       sysedge << node['sysedge']['monitors']['quantum']['ovs-agent']
     when "nova-network::nova-controller"
+      puts "nova-network::nova-controller"
       sysedge << node['sysedge']['monitors']['quantum']['server']
     when "memcached-openstack::default"
+      puts "memcached-openstack::default"
       sysedge << node['sysedge']['monitors']['memcached']
     when "cinder::cinder-api"
+      puts "cinder::cinder-api"
       sysedge << node['sysedge']['monitors']['cinder']['api']
     when "cinder::cinder-scheduler"
+      puts "cinder::cinder-scheduler"
       sysedge << node['sysedge']['monitors']['cinder']['scheduler']
     when "glance::api"
+      puts "glance::api"
       sysedge << node['sysedge']['monitors']['glance']['api']
     when "glance::registry"
+      puts "glance::registry"
       sysedge << node['sysedge']['monitors']['glance']['registry']
     when "keystone::setup"
+      puts "keystone::setup"
       sysedge << node['sysedge']['monitors']['keystone']
     when "nova::api-os-compute"
+      puts "nova::api-os-compute"
       sysedge << node['sysedge']['monitors']['nova']['api']
     when "nova::nova-cert"
+      puts "nova::nova-cert"
       sysedge << node['sysedge']['monitors']['nova']['cert']
     when "nova::nova-conductor"
+      puts "nova::nova-conductor"
       sysedge << node['sysedge']['monitors']['nova']['conductor']
     when "nova::vncproxy"
+      puts "nova::vncproxy"
       sysedge << node['sysedge']['monitors']['nova']['novncproxy']
       sysedge << node['sysedge']['monitors']['nova']['consoleauth']
     when "nova::scheduler"
+      puts "nova::scheduler"
       sysedge << node['sysedge']['monitors']['nova']['scheduler']
     when "nova-network::nova-compute"
+      puts "nova-network::nova-compute"
       sysedge << node['sysedge']['monitors']['nova']['nova-network']
       sysedge << node['sysedge']['monitors']['nova']['nova-api-metadata']
     when "nova::compute"
+      puts "nova::compute"
       sysedge << node['sysedge']['monitors']['nova']['compute']
       sysedge << node['sysedge']['monitors']['libvertd']
     end
   }
-  rec = node['sysedge']['sys-mon']
-  rec.each { |r| 
+  sysmon = node['sysedge']['sys-mon']
+  sysmon.each { |r| 
     sysedge << r
   }
-  sysedge.each_with_index { |s,i| sysedge[i] = s.sub(/edge-count/,(580000+i).to_s)}
+  sysedge = sysedge.compact
+  sysedge.each_with_index { |s,i| 
+    if !s.nil?
+      sysedge[i] = s.sub(/edge-count/,(580000+i).to_s)
+    end
+  }
   node.set['sysedge.cf'] = sysedge
-
 end
 
 tmp = Chef::Config[:file_cache_path]
