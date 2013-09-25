@@ -661,16 +661,6 @@ template monitor oid <oid> <index> <flags> <interval> <stype> <oper> <thresh> <d
 template monitor <table> <inst> <attr> <index> <flags> <interval> <stype> <oper> <thresh> <descr> <action> <supIndex>
 template monitor <table> <inst> <attr> <index> <flags> <interval> <stype> <oper> <thresh> <descr> <action> <objClass> <objInst> <objAttr> <severity>
 
-
-monitor oid memCapacity.0              11 0x300200 300 absolute >= 95 'Physical Memory Usage (percentage)' '' 'Memory'     'Total' 'PercentUsed' warning
-monitor oid memCapacity.0              12 0x300200 300 absolute >= 98 'Physical Memory Usage (percentage)' '' 'Memory'     'Total' 'PercentUsed' minor
-monitor oid cpuTotalIdlePercent.0      13 0x600200 120 absolute <= 10 'CPU Idle Time (percentage)'         '' 'CPU'        'Total' 'PercentIdle' warning
-monitor oid cpuTotalIdlePercent.0      14 0x600200 120 absolute <=  5 'CPU Idle Time (percentage)'         '' 'CPU'        'Total' 'PercentIdle' minor
-monitor oid diskStatsUtilization.1     15 0x300200 300 absolute >= 90 'Disk Busy Time (percentage)'        '' 'Disk'       'First' 'PercentBusy' warning
-monitor oid diskStatsUtilization.1     16 0x300200 300 absolute >= 95 'Disk Busy Time (percentage)'        '' 'Disk'       'First' 'PercentBusy' minor
-monitor devTableEntry '/'  devCapacity 19 0x0      300 absolute >= 95 'File System Usage (percentage)'     '' 'FileSystem' 'Root'  'PercentUsed' warning
-monitor devTableEntry '/'  devCapacity 20 0x0      300 absolute >= 98 'File System Usage (percentage)'     '' 'FileSystem' 'Root'  'PercentUsed' minor
-
 ################################################################################
 # This entry specifies a process monitor.
 #

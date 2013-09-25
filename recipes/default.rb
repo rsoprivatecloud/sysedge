@@ -57,9 +57,6 @@ else
   puts 'Creating Sysedge.cf'
   sysedge = Array.[]
   rec = node[:recipes]
-  puts "-------------------------------------------"
-  puts rec.to_s
-  puts "-------------------------------------------"
   rec.each { |r| case r
     when "horizon::server"
       sysedge << node['sysedge']['monitors']['apache2']
@@ -97,10 +94,17 @@ else
       sysedge << node['sysedge']['monitors']['nova']['consoleauth']
     when "nova::scheduler"
       sysedge << node['sysedge']['monitors']['nova']['scheduler']
+    when "nova-network::nova-compute"
+      sysedge << node['sysedge']['monitors']['nova']['nova-network']
+      sysedge << node['sysedge']['monitors']['nova']['nova-api-metadata']
     when "nova::compute"
       sysedge << node['sysedge']['monitors']['nova']['compute']
       sysedge << node['sysedge']['monitors']['libvertd']
     end
+  }
+  rec = node['sysedge']['sys-mon']
+  rec.each { |r| 
+    sysedge << r
   }
   sysedge.each_with_index { |s,i| sysedge[i] = s.sub(/edge-count/,(580000+i).to_s)}
   node.set['sysedge.cf'] = sysedge
