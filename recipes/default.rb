@@ -119,7 +119,33 @@ else
     when "nova::compute"
       puts "nova::compute"
       sysedge << node['sysedge']['monitors']['nova']['compute']
-      sysedge << node['sysedge']['monitors']['libvertd']
+      sysedge << node['sysedge']['monitors']['libvirtd']
+    when "swift::account-server"
+      puts "swift::account-server"
+      sysedge << node['sysedge']['monitors']['swift']['account-auditor']
+      sysedge << node['sysedge']['monitors']['swift']['account-reaper']
+      sysedge << node['sysedge']['monitors']['swift']['account-replicator']
+      sysedge << node['sysedge']['monitors']['swift']['account-server']
+    when "swift::container-server"
+      puts "swift::container-server"
+      sysedge << node['sysedge']['monitors']['swift']['container-auditor']
+      sysedge << node['sysedge']['monitors']['swift']['container-sync']
+      sysedge << node['sysedge']['monitors']['swift']['container-replicator']
+      sysedge << node['sysedge']['monitors']['swift']['container-server']
+      sysedge << node['sysedge']['monitors']['swift']['container-updater']
+    when "swift::object-server"
+      puts "swift::object-server"
+      sysedge << node['sysedge']['monitors']['swift']['object-auditor']
+      sysedge << node['sysedge']['monitors']['swift']['object-updater']
+      sysedge << node['sysedge']['monitors']['swift']['object-replicator']
+      sysedge << node['sysedge']['monitors']['swift']['object-server']
+      sysedge << node['sysedge']['monitors']['swift']['object-expirer']
+    when "swift::common"
+      puts "swift::common"
+      sysedge << node['sysedge']['monitors']['swift']['rsyncd']
+    when "swift::management-server"
+      puts "swift::management-server"
+      sysedge << node['sysedge']['monitors']['swift']['proxy-server']
     end
   }
   sysmon = node['sysedge']['sys-mon']
