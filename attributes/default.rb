@@ -28,6 +28,7 @@ default['sysedge']['monitors']['nova']['api-metadata'] = "watch process procAliv
 default['sysedge']['monitors']['mysqld'] = "watch process procAlive 'mysqld' edge-count 0xc10 30 absolute = 4 'Openstack mysqld' '' 'processEntry' '' '' critical"
 default['sysedge']['monitors']['libvirtd'] = "watch process procAlive 'libvirtd' edge-count 0xc10 30 absolute = 4 'Openstack libvirtd' '' 'processEntry' '' '' critical"
 default['sysedge']['monitors']['apache2'] = "watch process procAlive 'apache2' edge-count 0x201110 30 absolute nop 0 'Monitor httpd Daemon' '' 'processEntry' 'apache2' 'procAlive' critical"
+default['sysedge']['monitors']['rabbit'] = "watch process procAlive 'beam' edge-count 0x201110 30 absolute nop 0 'Monitor rabbitmq-server Daemon' '' 'processEntry' 'beam' 'procAlive' critical"
 default['sysedge']['monitors']['swift']['account-auditor'] = "watch process procAlive 'swift\-account\-auditor' edge-count 0xc10 30 absolute = 4 'Openstack swift\-account\-auditor' '' 'processEntry' '' '' critical"
 default['sysedge']['monitors']['swift']['account-reaper'] = "watch process procAlive 'swift\-account\-reaper ' edge-count 0xc10 30 absolute = 4 'Openstack swift\-account\-reaper ' '' 'processEntry' '' '' critical"
 default['sysedge']['monitors']['swift']['account-replicator'] = "watch process procAlive 'swift\-account\-replicator ' edge-count 0xc10 30 absolute = 4 'Openstack swift\-account\-replicator ' '' 'processEntry' '' '' critical"

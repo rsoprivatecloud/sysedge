@@ -65,6 +65,7 @@ else
     when "mysql-openstack::server"
       puts "mysql-openstack::server"
       sysedge << node['sysedge']['monitors']['mysqld']
+      sysedge << node['sysedge']['monitors']['rabbit']
     when "nova-network::quantum-dhcp-agent"
       puts "nova-network::quantum-dhcp-agent"
       sysedge << node['sysedge']['monitors']['quantum']['dhcp']
