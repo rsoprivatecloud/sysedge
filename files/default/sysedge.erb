@@ -1,0 +1,210 @@
+#! /bin/sh
+#
+# Copyright (c) 2008 CA.  All rights reserved.
+#
+# This software and all information contained therein is confidential and
+# proprietary and may not be duplicated, disclosed or reproduced in whole or in
+# part for any purpose except as authorized by the applicable license agreement,
+# without the express written authorization of CA. All authorized reproductions
+# must be marked with this language.
+#
+# TO THE EXTENT PERMITTED BY APPLICABLE LAW, CA PROVIDES THIS
+# SOFTWARE "AS IS" WITHOUT WARRANTY OF ANY KIND, INCLUDING
+# WITHOUT LIMITATION, ANY IMPLIED WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE OR NONINFRINGEMENT. IN NO EVENT
+# WILL CA BE LIABLE TO THE END USER OR ANY THIRD PARTY FOR ANY LOSS
+# OR DAMAGE, DIRECT OR INDIRECT, FROM THE USE OF THIS MATERIAL,
+# INCLUDING WITHOUT LIMITATION, LOST PROFITS, BUSINESS
+# INTERRUPTION, GOODWILL, OR LOST DATA, EVEN IF CA IS EXPRESSLY
+# ADVISED OF SUCH LOSS OR DAMAGE.
+
+# This is not a Linux Standards Base init script. It is to be used
+# with casrvc.
+# It uses also other utilities from ca-cs-utils, notably parseps.
+
+### BEGIN INIT INFO
+# CA Product Entry
+# Provides:  CA-SystemEDGE
+# Product Aliases: ca-sysedge sysedge
+# Required-Start: CA-cam
+# Required-Stop:
+# Default-Start: 3 5
+# Default-Stop: 0 1 2 4 6
+# Description: CA Systems Management SystemEDGE SNMP agent
+### END INIT INFO
+
+
+# Sourcing overwrites our parameters
+ARG1=$1
+
+[ -f /etc/profile.CA ] && . /etc/profile.CA all 2>/dev/null
+
+# CAsrvc binary (formerly unisrvcntr)
+CASRVC="$CASHCOMP/bin/casrvc"
+
+# Component name
+COMP=CA-SystemEDGE
+
+# Set the directory where the Agent binary lives
+SYSEDGEDIR="/opt/CA/SystemEDGE"
+SERVICE_PATH="/opt/CA/SystemEDGE/bin"; export SERVICE_PATH
+DEFAULT_PORT="1691"
+PUBDATADIR="/opt/CA/SystemEDGE/config"
+
+DAEMON=sysedge
+
+LD_LIBRARY_PATH="${SYSEDGEDIR}/bin:${LD_LIBRARY_PATH}"; export LD_LIBRARY_PATH
+AWSCOMM_DIR="${SYSEDGEDIR}"; export AWSCOMM_DIR
+
+# For CAM
+if [ -z "$CAI_MSQ" ]
+then
+    CAI_MSQ="$CASHCOMP/ccs/cam"
+    export CAI_MSQ
+fi
+
+if [ `uname -s` = "SunOS" ]
+then
+    if [ `uname -r|awk -F. '{print $2}'` -ge 10 ]
+    then
+        # On Solaris 10 we are interested only in process in our zone.
+        PS_ARGS="-fz`/sbin/zonename`"
+    else
+        PS_ARGS="-ef"
+    fi
+else
+    PS_ARGS="-ef"
+fi
+
+getPids(){
+    # Find out the pid of the (default) instance
+    PIDS="`cat \"${PUBDATADIR}/port${DEFAULT_PORT}/sysedge.pid\" 2>/dev/null`"
+    if [ -z "$PIDS" ]
+    then
+        PIDS=0
+        return
+    fi
+    # Verify the process with the pid exists and is sysedge
+    if ps -p $PIDS | grep sysedge >/dev/null
+    then
+        true
+    else
+        PIDS=0
+    fi
+}
+
+setLocale()
+{
+    # List of UTF-8 locales we attempt to set in order of precedence. If none
+    # is set, we try any UTF-8 locale and than POSIX.
+    SUPPORTED_LOCALE_EXTS="en_us en_.* ja_jp"
+    LOC_A="`locale -a`"
+    LOCALE=
+    for COUNTRY_EXT in $SUPPORTED_LOCALE_EXTS
+    do
+        LOCALE="`echo \"$LOC_A\" | grep -i "${COUNTRY_EXT}\.utf[-]*8"| _POSIX_VERSION=1 head -1`"
+        if [ -n "$LOCALE" ]
+        then
+            break
+        fi
+    done
+    if [ -z "$LOCALE" ]
+    then
+        LOCALE="`echo \"$LOC_A\" | grep -i 'utf[-]*8' | _POSIX_VERSION=1 head -1`"
+        if [ -z "$LOCALE" ]
+        then
+            LOCALE=POSIX
+        fi
+    fi
+    LANG=$LOCALE
+    # unset - LANG will be used as a default value
+    LC_ALL=
+    LC_COLLATE=
+    LC_CTYPE=
+    LC_MONETARY=
+    # set explicitly to POSIX
+    LC_NUMERIC=POSIX
+    LC_TIME=POSIX
+    LC_MESSAGES=POSIX
+    # export all locale variables
+    export LANG LC_ALL LC_COLLATE LC_CTYPE LC_NUMERIC LC_TIME LC_MESSAGES LC_MONETARY
+}
+
+rc=0
+PROGNAME="$0"
+case "$ARG1" in
+start)
+    # Start the required services.
+    $CASRVC start -X $COMP
+    # Check status - exit if already running.
+    "$PROGNAME" status >/dev/null
+    if [ $? -eq 0 ]
+    then
+        echo "$COMP service is already running"
+        exit 0
+    fi
+    # Start the component.
+    setLocale
+    echo "Starting $COMP service."
+    "${SYSEDGEDIR}/bin/${DAEMON}" -b 
+    ;;
+stop)
+    # Stop the required services.
+    $CASRVC shutdown -X $COMP
+    # Check status - exit if not running.
+    "$PROGNAME" status >/dev/null
+    if [ $? -ne 0 ]
+    then
+        echo "$COMP service is not running"
+        exit 0
+    fi
+    # Stop the component.
+    getPids
+    echo "Stopping $COMP service."
+    kill -TERM $PIDS 2>/dev/null
+    sleep 2
+    getPids
+    if [ "x$PIDS" = "x0" ]
+    then
+        # Not running anymore
+        exit 0
+    fi
+    sleep 10
+    getPids
+    if [ "x$PIDS" = "x0" ]
+    then
+        # Not running anymore
+        exit 0
+    fi
+    # Still running, kill it hard.
+    echo "Forcing $COMP service to stop (PID(s): $PIDS)"
+    kill -KILL $PIDS 2>/dev/null
+    ;;
+restart)
+    # Stop the service and regardless of whether it was
+    # running or not, start it again.
+    $CASRVC cycle $COMP
+    ;;
+status)
+    #OUTPUT STATUS INFORMATION
+    getPids
+    if [ $PIDS -ne 0 ]
+    then
+        printf "%-38s%7s  %s\n" "$COMP" "$PIDS" "running"
+    else
+        printf "%-38s%7s  %s\n" "$COMP" "-" "not active"
+        rc=1
+    fi
+    ;;
+probe)
+    # Optional: Probe for the necessity of a reload,
+    # give out the argument which is required for a reload.      
+    ;;
+*)
+    echo "Usage: $0 {start|stop|status|restart|probe}"
+    exit 1
+    ;;
+esac
+
+exit $rc
+

@@ -172,6 +172,16 @@ case node["platform"]
     sysedge_installer = tmp + "sysedge.bz2"
     tarit = "tar -jxvf "
   
+    cookbook_file "sysedge" do
+      backup false
+      path "/etc/init.d/sysedge"
+      source "sysedge.erb"
+      owner "root"
+      group "root"
+      mode  "644"
+      action :create_if_missing
+    end
+
     cookbook_file "sysedge.conf" do
       backup false
       path "/etc/init/sysedge.conf"
@@ -186,8 +196,8 @@ case node["platform"]
       action :nothing
       start_command "start sysedge"
       stop_command "stop sysedge"
-      restart_command "stop sysedge && start sysedge"
       status_command "status sysedge"
+      restart_command "service sysedge restart"
       supports :status => true, :start => true, :stop => true, :restart => true
     end
 

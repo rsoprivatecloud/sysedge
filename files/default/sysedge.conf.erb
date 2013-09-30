@@ -9,8 +9,6 @@ pre-start script
     test -x /opt/CA/SystemEDGE/bin/sysedge || { stop; exit 0; }
     test -e /opt/CA/SystemEDGE/config/port1691/sysedge.cf || { stop; exit 0; }
     perl -pi -e 's/\r//g;' /opt/CA/SystemEDGE/config/sysedge.cf
-    #cat /opt/CA/SystemEDGE/config/sysedge.cf | sed "s/\r//g" > /tmp/.sysedge
-    #mv /tmp/.sysedge /opt/CA/SystemEDGE/config/sysedge.cf
 end script
 
 
