@@ -199,10 +199,7 @@ case node["platform"]
     service "sysedge" do
       action :nothing
       service_name "sysedge"
-      start_command "service sysedge start"
-      stop_command "service sysedge stop"
-      restart_command "service sysedge restart"
-      status_command "status sysedge"
+      provider Chef::Provider::Service::Upstart
       supports :status => true, :start => true, :stop => true, :restart => true
     end
 
