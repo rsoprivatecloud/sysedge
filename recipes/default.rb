@@ -32,7 +32,7 @@ if node.attribute?('sysedge') then
     node.set['sysedge']['trapCommunity'] = "public"
   end
   if !node['sysedge']['trapSource']
-    if node['sysedge']['syslocation'] = 'cdc'
+    if node['sysedge']['syslocation'] == 'cdc'
       node.set['sysedge']['trapSource'] = node['ipaddress']
     else
       node.set['sysedge']['trapSource'] = `curl icanhazip.com`
